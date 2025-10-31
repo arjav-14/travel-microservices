@@ -1,0 +1,159 @@
+
+services:
+  # MongoDB
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - explorex-network
+
+  # API Gateway
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=development
+      - PORT=5000
+      - AUTH_SERVICE_URL=http://auth-service:3001
+      - USER_SERVICE_URL=http://user-service:3006
+      - PACKAGE_SERVICE_URL=http://package-service:3002
+      - DESTINATION_SERVICE_URL=http://destination-service:3005
+      - BOOKING_SERVICE_URL=http://booking-service:3003
+    depends_on:
+      - mongo
+      - auth-service
+      - user-service
+      - package-service
+      - destination-service
+    networks:
+      - explorex-network
+
+  # Auth Service
+  auth-service:
+    build: ./api-gateway/services/auth-service
+    container_name: auth-service
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - MONGO_URI=mongodb://mongo:27017/explorex-auth
+      - JWT_SECRET=your_jwt_secret
+      - JWT_EXPIRE=30d
+      - JWT_COOKIE_EXPIRE=30
+    depends_on:
+      - mongo
+    networks:
+      - explorex-network
+
+  # User Service
+  user-service:
+    build: ./api-gateway/services/user-service
+    container_name: user-service
+    ports:
+      - "3006:3006"
+    environment:
+      - NODE_ENV=development
+      - PORT=3006
+      - MONGO_URI=mongodb://mongo:27017/explorex-users
+      - JWT_SECRET=your_jwt_secret
+      - JWT_EXPIRE=30d
+      - JWT_COOKIE_EXPIRE=30
+      - SMTP_HOST=smtp.mailtrap.io
+      - SMTP_PORT=2525
+      - SMTP_EMAIL=your_mailtrap_email
+      - SMTP_PASSWORD=your_mailtrap_password
+      - FROM_EMAIL=noreply@explorex.com
+      - FROM_NAME=ExploreX
+      - FILE_UPLOAD_PATH=./public/uploads
+      - MAX_FILE_UPLOAD=1000000
+    volumes:
+      - ./api-gateway/services/user-service/public/uploads:/usr/src/app/public/uploads
+    depends_on:
+      - mongo
+    networks:
+      - explorex-network
+
+  # Package Service
+  package-service:
+    build: ./api-gateway/services/package-service
+    container_name: package-service
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=development
+      - PORT=3002
+      - MONGO_URI=mongodb://mongo:27017/explorex-packages
+      - JWT_SECRET=your_jwt_secret
+      - FILE_UPLOAD_PATH=./public/uploads
+      - MAX_FILE_UPLOAD=1000000
+    volumes:
+      - ./api-gateway/services/package-service/public/uploads:/usr/src/app/public/uploads
+    depends_on:
+      - mongo
+    networks:
+      - explorex-network
+
+  # Destination Service
+  destination-service:
+    build: ./api-gateway/services/destination-service
+    container_name: destination-service
+    ports:
+      - "3005:3005"
+    environment:
+      - NODE_ENV=development
+      - PORT=3005
+      - MONGO_URI=mongodb://mongo:27017/explorex-destinations
+      - JWT_SECRET=your_jwt_secret
+      - FILE_UPLOAD_PATH=./public/uploads
+      - MAX_FILE_UPLOAD=1000000
+      - GEOCODER_PROVIDER=mapquest
+      - GEOCODER_API_KEY=your_mapquest_api_key
+    volumes:
+      - ./api-gateway/services/destination-service/public/uploads:/usr/src/app/public/uploads
+    depends_on:
+      - mongo
+    networks:
+      - explorex-network
+
+  # Booking Service
+  booking-service:
+    build: ./api-gateway/services/booking-service
+    container_name: booking-service
+    ports:
+      - "3003:3003"
+    environment:
+      - NODE_ENV=development
+      - PORT=3003
+      - MONGO_URI=mongodb://mongo:27017/explorex-bookings
+      - JWT_SECRET=your_jwt_secret
+    depends_on:
+      - mongo
+    networks:
+      - explorex-network
+
+  # Frontend (commented out - not ready yet)
+  # frontend:
+  #   build: ./frontend
+  #   container_name: frontend
+  #   ports:
+  #     - "80:80"
+  #   depends_on:
+  #     - api-gateway
+  #   networks:
+  #     - explorex-network
+
+# Networks
+networks:
+  explorex-network:
+    driver: bridge
+
+# Volumes
+volumes:
+  mongodb_data:
