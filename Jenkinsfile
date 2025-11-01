@@ -134,13 +134,28 @@ pipeline {
                     echo "📦 Pushing all Docker images to DockerHub..."
                     
                     // Push each image with both build tag and latest tag
+                    def failedPushes = []
                     images.each { image ->
-                        sh "docker push ${DOCKER_USERNAME}/${image}:${BUILD_TAG}"
-                        sh "docker push ${DOCKER_USERNAME}/${image}:latest"
+                        def imageName = "${DOCKER_USERNAME}/${image}"
+                        try {
+                            echo "Pushing ${imageName}:${BUILD_TAG}"
+                            sh "docker push ${imageName}:${BUILD_TAG}"
+                            echo "Pushing ${imageName}:latest"
+                            sh "docker push ${imageName}:latest"
+                        } catch (Exception e) {
+                            echo "❌ Failed to push ${imageName}. Error: ${e.message}"
+                            failedPushes << imageName
+                            // Continue with next image even if one fails
+                        }
                     }
                     
                     // Clean up by logging out
                     sh "docker logout $DOCKER_REGISTRY"
+                    
+                    // Fail the build if any pushes failed
+                    if (!failedPushes.isEmpty()) {
+                        error "❌ Failed to push the following images. Please ensure these repositories exist in Docker Hub: ${failedPushes.join(', ')}"
+                    }
                 }
             }
         }
