@@ -28,6 +28,7 @@ pipeline {
                 dir('frontend') {
                     script {
                         echo "🚀 Building Frontend Docker image..."
+<<<<<<< HEAD
                         try {
                             // Generate pnpm-lock.yaml if it doesn't exist
                             if (!fileExists('pnpm-lock.yaml')) {
@@ -45,6 +46,10 @@ pipeline {
                             sh "docker build --build-arg PNPM_FLAGS='--no-frozen-lockfile' -t ${DOCKER_USERNAME}/${FRONTEND_IMAGE}:${BUILD_TAG} ."
                             sh "docker tag ${DOCKER_USERNAME}/${FRONTEND_IMAGE}:${BUILD_TAG} ${DOCKER_USERNAME}/${FRONTEND_IMAGE}:latest"
                         }
+=======
+                        sh "docker build -t ${DOCKER_USERNAME}/${FRONTEND_IMAGE}:${BUILD_TAG} ."
+                        sh "docker tag ${DOCKER_USERNAME}/${FRONTEND_IMAGE}:${BUILD_TAG} ${DOCKER_USERNAME}/${FRONTEND_IMAGE}:latest"
+>>>>>>> fbd1b26436a1acff2bdcf0f55382e9fdb5f570dd
                     }
                 }
             }
