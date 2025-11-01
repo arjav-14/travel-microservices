@@ -136,7 +136,7 @@ pipeline {
 
                         // Login to Docker Hub with better error handling
                         def loginStatus = sh(
-                            script: "echo '$DOCKER_HUB_PASSWORD' | docker login -u '$DOCKER_HUB_USERNAME' --password-stdin $DOCKER_REGISTRY",
+                            script: "echo '$DOCKER_HUB_PASSWORD' | docker login -u '$DOCKER_HUB_USERNAME' --password-stdin ",
                             returnStatus: true
                         )
                         
