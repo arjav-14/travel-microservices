@@ -113,26 +113,34 @@ pipeline {
 
         // ----------- PUSH ALL IMAGES TO DOCKER HUB -----------
         stage('Push to Docker Hub') {
+            environment {
+                DOCKER_REGISTRY = 'index.docker.io'
+            }
             steps {
                 script {
-                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-creds') {
-                        echo "📦 Pushing all Docker images to DockerHub..."
+                    def images = [
+                        FRONTEND_IMAGE,
+                        API_GATEWAY_IMAGE,
+                        AUTH_SERVICE_IMAGE,
+                        USER_SERVICE_IMAGE,
+                        PACKAGE_SERVICE_IMAGE,
+                        DESTINATION_SERVICE_IMAGE,
+                        BOOKING_SERVICE_IMAGE
+                    ]
 
-                        def images = [
-                            FRONTEND_IMAGE,
-                            API_GATEWAY_IMAGE,
-                            AUTH_SERVICE_IMAGE,
-                            USER_SERVICE_IMAGE,
-                            PACKAGE_SERVICE_IMAGE,
-                            DESTINATION_SERVICE_IMAGE,
-                            BOOKING_SERVICE_IMAGE
-                        ]
-
-                        images.each { image ->
-                            sh "docker push ${DOCKER_USERNAME}/${image}:${BUILD_TAG}"
-                            sh "docker push ${DOCKER_USERNAME}/${image}:latest"
-                        }
+                    // Login to Docker Hub
+                    sh "echo $DOCKER_HUB_CREDENTIALS_PSW | docker login -u $DOCKER_HUB_CREDENTIALS_USR --password-stdin $DOCKER_REGISTRY"
+                    
+                    echo "📦 Pushing all Docker images to DockerHub..."
+                    
+                    // Push each image with both build tag and latest tag
+                    images.each { image ->
+                        sh "docker push ${DOCKER_USERNAME}/${image}:${BUILD_TAG}"
+                        sh "docker push ${DOCKER_USERNAME}/${image}:latest"
                     }
+                    
+                    // Clean up by logging out
+                    sh "docker logout $DOCKER_REGISTRY"
                 }
             }
         }
