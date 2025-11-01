@@ -28,28 +28,8 @@ pipeline {
                 dir('frontend') {
                     script {
                         echo "🚀 Building Frontend Docker image..."
-<<<<<<< HEAD
-                        try {
-                            // Generate pnpm-lock.yaml if it doesn't exist
-                            if (!fileExists('pnpm-lock.yaml')) {
-                                echo "⚠️ pnpm-lock.yaml not found. Generating a new one..."
-                                sh 'pnpm install'
-                            }
-                            
-                            // Build the Docker image
-                            sh "docker build -t ${DOCKER_USERNAME}/${FRONTEND_IMAGE}:${BUILD_TAG} ."
-                            sh "docker tag ${DOCKER_USERNAME}/${FRONTEND_IMAGE}:${BUILD_TAG} ${DOCKER_USERNAME}/${FRONTEND_IMAGE}:latest"
-                        } catch (Exception e) {
-                            echo "❌ Frontend build failed: ${e.message}"
-                            // Try with --no-frozen-lockfile as a fallback
-                            echo "🔄 Trying fallback build method..."
-                            sh "docker build --build-arg PNPM_FLAGS='--no-frozen-lockfile' -t ${DOCKER_USERNAME}/${FRONTEND_IMAGE}:${BUILD_TAG} ."
-                            sh "docker tag ${DOCKER_USERNAME}/${FRONTEND_IMAGE}:${BUILD_TAG} ${DOCKER_USERNAME}/${FRONTEND_IMAGE}:latest"
-                        }
-=======
                         sh "docker build -t ${DOCKER_USERNAME}/${FRONTEND_IMAGE}:${BUILD_TAG} ."
                         sh "docker tag ${DOCKER_USERNAME}/${FRONTEND_IMAGE}:${BUILD_TAG} ${DOCKER_USERNAME}/${FRONTEND_IMAGE}:latest"
->>>>>>> fbd1b26436a1acff2bdcf0f55382e9fdb5f570dd
                     }
                 }
             }
