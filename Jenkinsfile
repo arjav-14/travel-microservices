@@ -54,7 +54,7 @@ pipeline {
         // ----------- AUTH SERVICE -----------
         stage('Build Auth Service') {
             steps {
-                dir('auth-service') {
+                dir('api-gateway/services/auth-service') {
                     script {
                         echo "🚀 Building Auth Service Docker image..."
                         sh "docker build -t ${DOCKER_USERNAME}/${AUTH_SERVICE_IMAGE}:${BUILD_TAG} -t ${DOCKER_USERNAME}/${AUTH_SERVICE_IMAGE}:latest ."
@@ -66,7 +66,7 @@ pipeline {
         // ----------- USER SERVICE -----------
         stage('Build User Service') {
             steps {
-                dir('user-service') {
+                dir('api-gateway/services/user-service') {
                     script {
                         echo "🚀 Building User Service Docker image..."
                         sh "docker build -t ${DOCKER_USERNAME}/${USER_SERVICE_IMAGE}:${BUILD_TAG} -t ${DOCKER_USERNAME}/${USER_SERVICE_IMAGE}:latest ."
@@ -78,7 +78,7 @@ pipeline {
         // ----------- PACKAGE SERVICE -----------
         stage('Build Package Service') {
             steps {
-                dir('package-service') {
+                dir('api-gateway/services/package-service') {
                     script {
                         echo "🚀 Building Package Service Docker image..."
                         sh "docker build -t ${DOCKER_USERNAME}/${PACKAGE_SERVICE_IMAGE}:${BUILD_TAG} -t ${DOCKER_USERNAME}/${PACKAGE_SERVICE_IMAGE}:latest ."
@@ -90,7 +90,7 @@ pipeline {
         // ----------- DESTINATION SERVICE -----------
         stage('Build Destination Service') {
             steps {
-                dir('destination-service') {
+                dir('api-gateway/services/destination-service') {
                     script {
                         echo "🚀 Building Destination Service Docker image..."
                         sh "docker build -t ${DOCKER_USERNAME}/${DESTINATION_SERVICE_IMAGE}:${BUILD_TAG} -t ${DOCKER_USERNAME}/${DESTINATION_SERVICE_IMAGE}:latest ."
@@ -102,7 +102,7 @@ pipeline {
         // ----------- BOOKING SERVICE -----------
         stage('Build Booking Service') {
             steps {
-                dir('booking-service') {
+                dir('api-gateway/services/booking-service') {
                     script {
                         echo "🚀 Building Booking Service Docker image..."
                         sh "docker build -t ${DOCKER_USERNAME}/${BOOKING_SERVICE_IMAGE}:${BUILD_TAG} -t ${DOCKER_USERNAME}/${BOOKING_SERVICE_IMAGE}:latest ."
