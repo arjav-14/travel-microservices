@@ -4,12 +4,11 @@ FROM node:20-alpine AS build
 # Set working directory
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
-COPY pnpm-lock.yaml* ./
-
 # Install pnpm globally
 RUN npm install -g pnpm
+
+# Copy package files
+COPY package.json pnpm-lock.yaml* ./
 
 # Install dependencies
 # This will automatically handle missing lockfile gracefully
@@ -23,6 +22,8 @@ RUN if [ -f pnpm-lock.yaml ]; then \
 
 # Copy the rest of the frontend code
 COPY . .
+
+# Build the production-ready app
 
 # Build the production-ready app
 RUN pnpm run build
