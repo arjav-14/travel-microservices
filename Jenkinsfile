@@ -6,14 +6,15 @@ pipeline {
         DOCKER_HUB_CREDENTIALS = credentials('dockerhub-creds')
         DOCKER_USERNAME = 'aaaaa092'
 
+        // Image names
+        FRONTEND_IMAGE = 'explorex-frontend'
+        BACKEND_IMAGE = 'explorex-backend'
+
+        // Build tag for versioning (using commit hash)
+        BUILD_TAG = "${env.BUILD_NUMBER}-${env.GIT_COMMIT.take(7)}"
+
         // GitHub repository
         GIT_REPO = 'https://github.com/arjav-14/travel-microservices.git'
-
-        // Image name
-        IMAGE_NAME = 'travel-microservices'
-
-        // Build tag for versioning
-        BUILD_TAG = "${env.BUILD_NUMBER}"
     }
 
     stages {
@@ -23,32 +24,60 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build Frontend') {
             steps {
-                script {
-                    echo "Building Docker image..."
-                    sh "docker build -t ${DOCKER_USERNAME}/${IMAGE_NAME}:${BUILD_TAG} ."
+                dir('frontend') {
+                    script {
+                        echo "Building Frontend Docker image..."
+                        sh "docker build -t ${DOCKER_USERNAME}/${FRONTEND_IMAGE}:${BUILD_TAG} ."
+                        sh "docker tag ${DOCKER_USERNAME}/${FRONTEND_IMAGE}:${BUILD_TAG} ${DOCKER_USERNAME}/${FRONTEND_IMAGE}:latest"
+                    }
                 }
             }
         }
 
-        stage('Push Docker Image') {
+        stage('Build Backend') {
+            steps {
+                dir('backend') {
+                    script {
+                        echo "Building Backend Docker image..."
+                        sh "docker build -t ${DOCKER_USERNAME}/${BACKEND_IMAGE}:${BUILD_TAG} ."
+                        sh "docker tag ${DOCKER_USERNAME}/${BACKEND_IMAGE}:${BUILD_TAG} ${DOCKER_USERNAME}/${BACKEND_IMAGE}:latest"
+                    }
+                }
+            }
+        }
+
+        stage('Push to Docker Hub') {
             steps {
                 script {
-                    echo "Pushing image to DockerHub..."
                     docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-creds') {
-                        sh "docker push ${DOCKER_USERNAME}/${IMAGE_NAME}:${BUILD_TAG}"
-                        // Optional latest tag
-                        sh "docker tag ${DOCKER_USERNAME}/${IMAGE_NAME}:${BUILD_TAG} ${DOCKER_USERNAME}/${IMAGE_NAME}:latest"
-                        sh "docker push ${DOCKER_USERNAME}/${IMAGE_NAME}:latest"
+                        // Push frontend images
+                        sh "docker push ${DOCKER_USERNAME}/${FRONTEND_IMAGE}:${BUILD_TAG}"
+                        sh "docker push ${DOCKER_USERNAME}/${FRONTEND_IMAGE}:latest"
+                        
+                        // Push backend images
+                        sh "docker push ${DOCKER_USERNAME}/${BACKEND_IMAGE}:${BUILD_TAG}"
+                        sh "docker push ${DOCKER_USERNAME}/${BACKEND_IMAGE}:latest"
                     }
                 }
             }
         }
 
         stage('Deploy (Optional)') {
+            when {
+                branch 'main'  // Only deploy from main branch
+            }
             steps {
-                echo "You can add Docker Compose or server deployment steps here later."
+                script {
+                    // You can add your deployment logic here
+                    // For example, using docker-compose or Kubernetes
+                    echo "Deployment would happen here..."
+                    
+                    // Example of how you might update a docker-compose file with the new image tags
+                    // sh "sed -i 's|${DOCKER_USERNAME}/${FRONTEND_IMAGE}:.*|${DOCKER_USERNAME}/${FRONTEND_IMAGE}:${BUILD_TAG}|g' docker-compose.prod.yml"
+                    // sh "docker-compose -f docker-compose.prod.yml up -d"
+                }
             }
         }
     }
@@ -57,12 +86,16 @@ pipeline {
         always {
             echo "Cleaning workspace..."
             cleanWs()
+            // Clean up Docker images to save space
+            sh "docker system prune -f"
         }
         success {
             echo "✅ Build and push completed successfully!"
+            // You can add notifications here (Slack, email, etc.)
         }
         failure {
             echo "❌ Build failed. Check Jenkins console output."
+            // You can add failure notifications here
         }
     }
 }
