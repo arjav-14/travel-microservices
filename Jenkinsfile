@@ -2,7 +2,6 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_HUB_CREDENTIALS = credentials('dockerhub-creds')
         DOCKER_USERNAME = 'aaaaa092'
 
         // Image names
@@ -117,45 +116,77 @@ pipeline {
                 DOCKER_REGISTRY = 'index.docker.io'
             }
             steps {
-                script {
-                    def images = [
-                        FRONTEND_IMAGE,
-                        API_GATEWAY_IMAGE,
-                        AUTH_SERVICE_IMAGE,
-                        USER_SERVICE_IMAGE,
-                        PACKAGE_SERVICE_IMAGE,
-                        DESTINATION_SERVICE_IMAGE,
-                        BOOKING_SERVICE_IMAGE
-                    ]
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dockerhub-creds',
+                        usernameVariable: 'DOCKER_HUB_USERNAME',
+                        passwordVariable: 'DOCKER_HUB_PASSWORD'
+                    )
+                ]) {
+                    script {
+                        def images = [
+                            FRONTEND_IMAGE,
+                            API_GATEWAY_IMAGE,
+                            AUTH_SERVICE_IMAGE,
+                            USER_SERVICE_IMAGE,
+                            PACKAGE_SERVICE_IMAGE,
+                            DESTINATION_SERVICE_IMAGE,
+                            BOOKING_SERVICE_IMAGE
+                        ]
 
-                    // Login to Docker Hub
-                    sh "echo $DOCKER_HUB_CREDENTIALS_PSW | docker login -u $DOCKER_HUB_CREDENTIALS_USR --password-stdin $DOCKER_REGISTRY"
-                    
-                    echo "📦 Pushing all Docker images to DockerHub..."
-                    
-                    // Push each image with both build tag and latest tag
-                    def failedPushes = []
-                    images.each { image ->
-                        def imageName = "${DOCKER_USERNAME}/${image}"
-                        try {
-                            echo "Pushing ${imageName}:${BUILD_TAG}"
-                            sh "docker push ${imageName}:${BUILD_TAG}"
-                            echo "Pushing ${imageName}:latest"
-                            sh "docker push ${imageName}:latest"
-                        } catch (Exception e) {
-                            echo "❌ Failed to push ${imageName}. Error: ${e.message}"
-                            failedPushes << imageName
-                            // Continue with next image even if one fails
+                        // Login to Docker Hub with better error handling
+                        def loginStatus = sh(
+                            script: "echo '$DOCKER_HUB_PASSWORD' | docker login -u '$DOCKER_HUB_USERNAME' --password-stdin $DOCKER_REGISTRY",
+                            returnStatus: true
+                        )
+                        
+                        if (loginStatus != 0) {
+                            error '❌ Failed to authenticate with Docker Hub. Please check your credentials.'
+                        }
+                        
+                        echo '✅ Successfully logged in to Docker Hub'
+                        echo "📦 Pushing all Docker images to DockerHub..."
+                        
+                        // Push each image with both build tag and latest tag
+                        def failedPushes = []
+                        images.each { image ->
+                            def imageName = "${DOCKER_USERNAME}/${image}"
+                            try {
+                                // Check if image exists locally before pushing
+                                def imageExists = sh(
+                                    script: "docker image inspect ${imageName}:${BUILD_TAG} > /dev/null 2>&1",
+                                    returnStatus: true
+                                ) == 0
+                                
+                                if (!imageExists) {
+                                    echo "⚠️  Image ${imageName}:${BUILD_TAG} not found locally. Skipping..."
+                                    return // Skip to next image
+                                }
+                                
+                                echo "🚀 Pushing ${imageName}:${BUILD_TAG}"
+                                sh "docker push ${imageName}:${BUILD_TAG}"
+                                
+                                echo "🚀 Pushing ${imageName}:latest"
+                                sh "docker push ${imageName}:latest"
+                                
+                                echo "✅ Successfully pushed ${imageName}"
+                            } catch (Exception e) {
+                                def errorMsg = "❌ Failed to push ${imageName}. Error: ${e.message}"
+                                echo errorMsg
+                                failedPushes << imageName
+                                // Continue with next image even if one fails
+                            }
+                        }
+                        
+                        // Clean up by logging out
+                        sh "docker logout $DOCKER_REGISTRY"
+                        
+                        // Fail the build if any pushes failed
+                        if (!failedPushes.isEmpty()) {
+                            error "❌ Failed to push the following images. Please check if these repositories exist in Docker Hub and that your credentials have push access: ${failedPushes.join(', ')}"
                         }
                     }
-                    
-                    // Clean up by logging out
-                    sh "docker logout $DOCKER_REGISTRY"
-                    
-                    // Fail the build if any pushes failed
-                    if (!failedPushes.isEmpty()) {
-                        error "❌ Failed to push the following images. Please ensure these repositories exist in Docker Hub: ${failedPushes.join(', ')}"
-                    }
+                }
                 }
             }
         }
