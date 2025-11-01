@@ -16,7 +16,7 @@ export default function Destinations() {
   useEffect(() => {
     const fetchDestinations = async () => {
       try {
-        const response = await fetch('/api/v1/destinations');
+        const response = await fetch('http://localhost:3005/api/v1/destinations');
         if (!response.ok) {
           throw new Error('Failed to fetch destinations');
         }

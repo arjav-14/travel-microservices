@@ -21,7 +21,7 @@ const DestinationDetails = () => {
   useEffect(() => {
     const fetchDestination = async () => {
       try {
-        const response = await axios.get(`http://localhost:5001/api/v1/destinations/${id}`);
+        const response = await axios.get(`http://localhost:3005/api/v1/destinations/${id}`);
         setDestination(response.data.data);
       } catch (err) {
         console.error('Error details:', {

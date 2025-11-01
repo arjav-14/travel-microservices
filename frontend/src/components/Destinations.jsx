@@ -279,7 +279,7 @@ const Destinations = () => {
   useEffect(() => {
     const fetchDestinations = async () => {
       try {
-        const response = await axios.get("http://localhost:5001/api/v1/destinations");
+        const response = await axios.get("http://localhost:3005/api/v1/destinations");
         setDestinations(response.data.data);
       } catch (err) {
         console.error("Error fetching destinations:", err);

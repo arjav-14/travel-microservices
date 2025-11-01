@@ -24,7 +24,7 @@ exports.getDestinations = asyncHandler(async (req, res, next) => {
   queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, match => `$${match}`);
 
   // Finding resource
-  let query = Destination.find(JSON.parse(queryStr)).populate('reviews');
+  let query = Destination.find(JSON.parse(queryStr)).select('-reviews');
 
   // Filter by activities
   if (req.query.activities) {
@@ -95,7 +95,7 @@ exports.getDestinations = asyncHandler(async (req, res, next) => {
 // @route   GET /api/v1/destinations/:id
 // @access  Public
 exports.getDestination = asyncHandler(async (req, res, next) => {
-  const destination = await Destination.findById(req.params.id).populate('reviews');
+  const destination = await Destination.findById(req.params.id).select('-reviews');
 
   if (!destination) {
     return next(

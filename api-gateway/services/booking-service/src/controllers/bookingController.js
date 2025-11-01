@@ -173,27 +173,107 @@ exports.updateBookingPayment = async (req, res) => {
 
     const updatedBooking = await booking.save();
 
-    // Send confirmation email if payment is successful
+    console.log('Payment status:', paymentStatus);
     if (paymentStatus === 'paid') {
+      console.log('Payment successful, attempting to send confirmation email');
+      
       try {
-        // Fetch package details from package service
-        const packageResponse = await axios.get(`http://localhost:3004/api/v1/packages/${booking.package}`);
-        const packageDetails = packageResponse.data.data;
-
-        // Fetch user details from auth service to get email
-        const userResponse = await axios.get(`http://localhost:3001/api/v1/auth/users/${booking.user}`);
-        const userEmail = userResponse.data.email || userResponse.data.data?.email;
-
-        if (userEmail && packageDetails) {
-          console.log('Sending confirmation email to:', userEmail);
-          await sendBookingConfirmationEmail(updatedBooking, packageDetails, userEmail);
-          console.log('Confirmation email sent successfully');
-        } else {
-          console.warn('Could not send email: missing user email or package details');
+        // 1. First, get the package details
+        let packageDetails = null;
+        try {
+          console.log('Fetching package details for package ID:', booking.package);
+          // Using package service on port 3002 as per frontend configuration
+          const packageServiceUrl = process.env.PACKAGE_SERVICE_URL || 'http://localhost:3002';
+          const packageResponse = await axios.get(`${packageServiceUrl}/api/v1/packages/${booking.package}`, {
+            timeout: 5000 // 5 second timeout
+          });
+          packageDetails = packageResponse.data?.data;
+          console.log('Package details fetched successfully');
+        } catch (packageError) {
+          console.error('Error fetching package details:', {
+            message: packageError.message,
+            code: packageError.code,
+            config: {
+              url: packageError.config?.url,
+              method: packageError.config?.method
+            }
+          });
+          
+          // Create a minimal package details object if we can't fetch it
+          packageDetails = {
+            name: 'Your Travel Package',
+            description: 'Package details could not be loaded',
+            duration: 'N/A',
+            price: booking.totalPrice || 0,
+            itinerary: []
+          };
+          console.log('Using fallback package details');
         }
-      } catch (emailError) {
-        // Don't fail the payment update if email fails
-        console.error('Error sending confirmation email:', emailError.message);
+
+        // 2. Get user details with auth token
+        console.log('Fetching user details for user ID:', booking.user);
+        const authHeader = req.headers.authorization || req.headers.Authorization;
+        
+        if (!authHeader) {
+          console.warn('No authorization header found in request. Will try to send email with basic info.');
+          // Try to get email from request body if available
+          const userEmail = req.body.email || req.user?.email;
+          if (userEmail && packageDetails) {
+            await sendBookingConfirmationEmail(updatedBooking, packageDetails, userEmail);
+            console.log('Confirmation email sent to:', userEmail);
+          } else {
+            console.warn('Could not send email: missing user email or package details');
+          }
+          return;
+        }
+        
+        try {
+          const userResponse = await axios.get(
+            `http://localhost:3001/api/v1/auth/users/${booking.user}`, 
+            {
+              headers: { 'Authorization': authHeader }
+            }
+          );
+          
+          console.log('User API response status:', userResponse.status);
+          const userEmail = userResponse.data?.email || userResponse.data?.data?.email;
+          
+          if (userEmail && packageDetails) {
+            console.log('Sending confirmation email to:', userEmail);
+            await sendBookingConfirmationEmail(updatedBooking, packageDetails, userEmail);
+            console.log('Confirmation email sent successfully');
+          } else {
+            console.warn('Could not send email: missing user email or package details', {
+              hasUserEmail: !!userEmail,
+              hasPackageDetails: !!packageDetails,
+              userResponseData: userResponse.data
+            });
+          }
+        } catch (userError) {
+          console.error('Error fetching user details:', {
+            message: userError.message,
+            status: userError.response?.status,
+            response: userError.response?.data
+          });
+          
+          // Try to send email with fallback email if available in request body
+          const fallbackEmail = req.body.email || req.user?.email;
+          if (fallbackEmail && packageDetails) {
+            console.log('Attempting to send email with fallback email:', fallbackEmail);
+            try {
+              await sendBookingConfirmationEmail(updatedBooking, packageDetails, fallbackEmail);
+              console.log('Confirmation email sent to fallback email successfully');
+            } catch (emailError) {
+              console.error('Error sending to fallback email:', emailError.message);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error in email sending process:', {
+          message: error.message,
+          stack: error.stack,
+          response: error.response?.data
+        });
       }
     }
 

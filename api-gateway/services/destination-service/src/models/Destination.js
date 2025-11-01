@@ -72,7 +72,9 @@ const DestinationSchema = new mongoose.Schema({
   }
 }, {
   toJSON: { virtuals: true },
-  toObject: { virtuals: true }
+  toObject: { virtuals: true },
+  id: false,
+  strictPopulate: false
 });
 
 // Create location field for geocoding
@@ -104,6 +106,14 @@ DestinationSchema.pre('remove', async function(next) {
 // Reverse populate with virtuals
 DestinationSchema.virtual('packages', {
   ref: 'Package',
+  localField: '_id',
+  foreignField: 'destination',
+  justOne: false
+});
+
+// Reverse populate with virtuals
+DestinationSchema.virtual('reviews', {
+  ref: 'Review',
   localField: '_id',
   foreignField: 'destination',
   justOne: false

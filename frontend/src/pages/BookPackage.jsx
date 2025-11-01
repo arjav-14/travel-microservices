@@ -19,7 +19,7 @@ export default function BookPackage() {
   const fetchPackageDetails = async (packageId) => {
     try {
       setIsLoading(true);
-      const response = await axios.get(`http://localhost:3004/api/v1/packages/${packageId}`);
+      const response = await axios.get(`http://localhost:3002/api/v1/packages/${packageId}`);
       
       if (response.data.success) {
         setPackageDetails(response.data.data);

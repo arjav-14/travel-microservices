@@ -327,7 +327,7 @@ export default function Packages() {
   useEffect(() => {
     const fetchPackages = async () => {
       try {
-        const res = await fetch("http://localhost:3004/api/v1/packages");
+        const res = await fetch("http://localhost:3002/api/v1/packages");
         if (!res.ok) throw new Error("Failed to fetch packages");
         const response = await res.json();
         console.log("API Response:", response);

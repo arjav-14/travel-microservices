@@ -607,7 +607,7 @@ export default function BookingDetails() {
       // Fetch package details if we have a package ID
       if (bookingData.package) {
         try {
-          const packageResponse = await axios.get(`http://localhost:3004/api/v1/packages/${bookingData.package}`);
+          const packageResponse = await axios.get(`http://localhost:3002/api/v1/packages/${bookingData.package}`);
           console.log('Package data:', packageResponse.data);
           setPackageDetails(packageResponse.data.data);
         } catch (pkgErr) {

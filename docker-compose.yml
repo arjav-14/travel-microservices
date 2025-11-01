@@ -43,7 +43,7 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3001
-      - MONGO_URI=mongodb://mongo:27017/explorex-auth
+      - MONGODB_URI=mongodb://mongo:27017/explorex-auth
       - JWT_SECRET=your_jwt_secret
       - JWT_EXPIRE=30d
       - JWT_COOKIE_EXPIRE=30
@@ -61,7 +61,7 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3006
-      - MONGO_URI=mongodb://mongo:27017/explorex-users
+      - MONGODB_URI=mongodb://mongo:27017/explorex-users
       - JWT_SECRET=your_jwt_secret
       - JWT_EXPIRE=30d
       - JWT_COOKIE_EXPIRE=30
@@ -89,7 +89,7 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3002
-      - MONGO_URI=mongodb://mongo:27017/explorex-packages
+      - MONGODB_URI=mongodb://mongo:27017/explorex-packages
       - JWT_SECRET=your_jwt_secret
       - FILE_UPLOAD_PATH=./public/uploads
       - MAX_FILE_UPLOAD=1000000
@@ -109,7 +109,7 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3005
-      - MONGO_URI=mongodb://mongo:27017/explorex-destinations
+      - MONGODB_URI=mongodb://mongo:27017/explorex-destinations
       - JWT_SECRET=your_jwt_secret
       - FILE_UPLOAD_PATH=./public/uploads
       - MAX_FILE_UPLOAD=1000000
@@ -131,23 +131,26 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3003
-      - MONGO_URI=mongodb://mongo:27017/explorex-bookings
+      - MONGODB_URI=mongodb://mongo:27017/explorex-bookings
       - JWT_SECRET=your_jwt_secret
     depends_on:
       - mongo
     networks:
       - explorex-network
 
-  # Frontend (commented out - not ready yet)
-  # frontend:
-  #   build: ./frontend
-  #   container_name: frontend
-  #   ports:
-  #     - "80:80"
-  #   depends_on:
-  #     - api-gateway
-  #   networks:
-  #     - explorex-network
+  # Frontend
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    ports:
+      - "80:80"
+    environment:
+      - NODE_ENV=development
+      - REACT_APP_API_URL=http://localhost:5000  # or your API gateway URL
+    depends_on:
+      - api-gateway
+    networks:
+      - explorex-network
 
 # Networks
 networks:
@@ -156,4 +159,4 @@ networks:
 
 # Volumes
 volumes:
-  mongodb_data:
+  mongodb_data: 
