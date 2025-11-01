@@ -5,11 +5,16 @@ WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
-COPY pnpm-lock.yaml* ./
 
-# Install dependencies
+# Install pnpm
 RUN npm install -g pnpm
-RUN pnpm install --frozen-lockfile
+
+# Copy lock file if it exists
+COPY pnpm-lock.yaml* ./ 2>/dev/null || true
+
+# Install dependencies with PNPM_FLAGS build arg if provided
+ARG PNPM_FLAGS=""
+RUN pnpm install ${PNPM_FLAGS}
 
 # Copy source code
 COPY . .
