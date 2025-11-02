@@ -5,7 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { useEffect } from 'react';
-
+import ApiTest from "./components/ApiTest";
 // Components
 import { Navbar } from "./components/Navbar";
 import { Footer } from "./components/Footer";
@@ -76,6 +76,7 @@ const AppContent = () => {
                 </div>
               }
             >
+              <ApiTest /> 
               <Routes>
                 {/* Public Routes */}
                 <Route path="/" element={<Home />} />

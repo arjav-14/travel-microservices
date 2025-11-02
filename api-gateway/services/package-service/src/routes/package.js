@@ -10,7 +10,9 @@ const {
 const { protect, authorize } = require('../middleware/auth');
 
 const router = express.Router();
-
+router.get('/health', (req, res) => {
+  res.status(200).json({ status: 'OK' });
+});
 // Public routes
 router.route('/radius/:zipcode/:distance').get(getPackagesInRadius);
 router.route('/').get(getPackages);

@@ -13,7 +13,9 @@ const {
 
 // Temporarily disable authentication for development
 // router.use(protect);
-
+router.get('/health', (req, res) => {
+  res.status(200).json({ status: 'OK' });
+});
 // User routes - Public for now
 router.post('/', createBooking);
 router.get('/mybookings', getMyBookings);

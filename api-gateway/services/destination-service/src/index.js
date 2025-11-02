@@ -43,7 +43,9 @@ app.use('/api/v1/destinations', destinations);
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK' });
 });
-
+app.get('/api/v1/destinations/health', (req, res) => {
+  res.status(200).json({ status: 'OK' });
+});
 // Error handling middleware
 const errorHandler = require('./middleware/error');
 app.use(errorHandler);

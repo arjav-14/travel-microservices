@@ -20,7 +20,9 @@ app.use('/api/v1/bookings', bookingRoutes);
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK' });
 });
-
+app.get('/api/v1/bookings/health', (req, res) => {
+  res.status(200).json({ status: 'OK' });
+});
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
