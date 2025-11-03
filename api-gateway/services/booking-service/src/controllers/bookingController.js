@@ -1,5 +1,6 @@
 // services/booking-service/src/controllers/bookingController.js
 const Booking = require('../models/Booking');
+const Package = require('../models/Package');
 const { StatusCodes } = require('http-status-codes');
 const mongoose = require('mongoose');
 const axios = require('axios');
@@ -321,7 +322,52 @@ exports.deleteBooking = async (req, res) => {
   }
 };
 
-// @desc    Get user bookings
+// @desc    Get bookings by user ID
+// @route   GET /user/:userId
+// @access  Private
+exports.getBookingsByUser = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    
+    // Validate user ID
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        success: false,
+        message: 'Invalid user ID'
+      });
+    }
+
+    const bookings = await Booking.find({ user: userId })
+      .populate({
+        path: 'package',
+        select: 'name images',
+        // If package is not found, return a minimal object with _id
+        options: { lean: true },
+        transform: (doc) => {
+          if (!doc) {
+            return { _id: null, name: 'Package not found', images: [] };
+          }
+          return doc;
+        }
+      })
+      .sort({ createdAt: -1 });
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      count: bookings.length,
+      data: bookings
+    });
+  } catch (error) {
+    console.error('Get bookings by user error:', error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: 'Error fetching bookings',
+      error: error.message
+    });
+  }
+};
+
+// @desc    Get user bookings (for current user)
 // @route   GET /mybookings
 // @access  Private
 exports.getMyBookings = async (req, res) => {

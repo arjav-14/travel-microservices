@@ -267,7 +267,7 @@ import { Button } from "@/components/ui/button";
 import { MapPin, Star, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import axios from "axios";
+
 
 const Destinations = () => {
   const [destinations, setDestinations] = useState([]);
@@ -279,11 +279,24 @@ const Destinations = () => {
   useEffect(() => {
     const fetchDestinations = async () => {
       try {
-        const response = await axios.get("http://localhost:3005/api/v1/destinations");
-        setDestinations(response.data.data);
+        const response = await fetch("http://localhost:3005/api/v1/destinations", {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        setDestinations(data.data || data);
       } catch (err) {
         console.error("Error fetching destinations:", err);
-        setError("Failed to load destinations. Please try again later.");
+        setError(err.message || "Failed to load destinations. Please try again later.");
       } finally {
         setLoading(false);
       }

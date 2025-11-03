@@ -1,45 +1,25 @@
-# ---------- Build Stage ----------
-FROM node:20-alpine AS build
+﻿# Build stage
+FROM node:20-alpine as build
 
-# Set working directory
 WORKDIR /app
-
-# Install pnpm globally
-RUN npm install -g pnpm
-
-# Copy package files
-COPY package.json pnpm-lock.yaml* ./
-
-# Install dependencies
-# This will automatically handle missing lockfile gracefully
-RUN if [ -f pnpm-lock.yaml ]; then \
-      echo "✅ pnpm-lock.yaml found — installing with frozen lockfile"; \
-      pnpm install --frozen-lockfile; \
-    else \
-      echo "⚠️ No pnpm-lock.yaml found — installing without frozen lockfile"; \
-      pnpm install --no-frozen-lockfile; \
-    fi
-
-# Copy the rest of the frontend code
 COPY . .
+RUN npm install
+RUN npm run build
 
-# Build the production-ready app
-
-# Build the production-ready app
-RUN pnpm run build
-
-# ---------- Production Stage ----------
+# Production stage
 FROM nginx:alpine
 
-# Remove default nginx config and copy custom one (if exists)
-RUN rm -rf /etc/nginx/conf.d/default.conf
-COPY nginx/nginx.conf /etc/nginx/conf.d/default.conf
+# Remove default nginx config
+RUN rm -f /etc/nginx/conf.d/default.conf
 
-# Copy built frontend from build stage to nginx
+# Copy custom nginx config
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Copy built files from build stage
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Expose port 80 for web traffic
+# Expose port 80
 EXPOSE 80
 
-# Start Nginx
+# Start nginx
 CMD ["nginx", "-g", "daemon off;"]

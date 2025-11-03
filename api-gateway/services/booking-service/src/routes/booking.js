@@ -7,7 +7,8 @@ const {
   getBooking,
   updateBookingPayment,
   deleteBooking,
-  getMyBookings
+  getMyBookings,
+  getBookingsByUser
 } = require('../controllers/bookingController');
 // const { protect, authorize } = require('../middleware/auth');
 
@@ -19,6 +20,7 @@ router.get('/health', (req, res) => {
 // User routes - Public for now
 router.post('/', createBooking);
 router.get('/mybookings', getMyBookings);
+router.get('/user/:userId', getBookingsByUser);
 router.get('/:id', getBooking);
 router.put('/:id/pay', updateBookingPayment);
 

@@ -307,6 +307,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Filter, X, Search, ChevronDown } from "lucide-react";
+import axios from 'axios';
 
 export default function Packages() {
   const [packages, setPackages] = useState([]);
@@ -327,20 +328,26 @@ export default function Packages() {
   useEffect(() => {
     const fetchPackages = async () => {
       try {
-        const res = await fetch("http://localhost:3002/api/v1/packages");
-        if (!res.ok) throw new Error("Failed to fetch packages");
-        const response = await res.json();
+        const token = localStorage.getItem('token');
+        const response = await axios.get("http://localhost:3002/api/v1/packages", {
+          withCredentials: true,
+          headers: {
+            'Authorization': token ? `Bearer ${token}` : '',
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        });
         console.log("API Response:", response);
         
-        if (response.success && Array.isArray(response.data)) {
-          console.log("Packages data:", response.data);
-          setPackages(response.data);
+        if (response.data.success && Array.isArray(response.data.data)) {
+          console.log("Packages data:", response.data.data);
+          setPackages(response.data.data);
         } else {
           throw new Error("Invalid data format from server");
         }
       } catch (err) {
         console.error("Error fetching packages:", err);
-        setError(err.message);
+        setError(err.response?.data?.message || err.message || "Failed to fetch packages");
       } finally {
         setLoading(false);
       }

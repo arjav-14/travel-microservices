@@ -148,7 +148,7 @@ const destinations = [
 // Connect to DB
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/explorex-destinations', {
+    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/wanderway', {
       useNewUrlParser: true,
       useUnifiedTopology: true
     });

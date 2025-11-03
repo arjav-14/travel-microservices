@@ -22,8 +22,16 @@ app.use(express.json());
 // Cookie parser
 app.use(cookieParser());
 
+// CORS Configuration
+const corsOptions = {
+  origin: 'http://localhost:8080',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+
 // Enable CORS
-app.use(cors());
+app.use(cors(corsOptions));
 
 // Dev logging middleware
 if (process.env.NODE_ENV === 'development') {
@@ -52,7 +60,7 @@ app.use(errorHandler);
 
 // Connect to MongoDB and start server
 const PORT = process.env.PORT || 3005;
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://mongo:27017/explorex-destinations';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/wanderway';
 
 mongoose
   .connect(MONGODB_URI, {

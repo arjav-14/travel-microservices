@@ -9,7 +9,12 @@ const bookingRoutes = require('./routes/booking');
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:8080',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 app.use(morgan('dev'));
 
@@ -33,8 +38,8 @@ app.use((err, req, res, next) => {
 });
 
 // Connect to MongoDB and start server
-const PORT = process.env.PORT || 3002;
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://mongo:27017/explorex-bookings';
+const PORT = process.env.PORT || 3003;
+const MONGODB_URI = process.env.MONGODB_URI;
 
 mongoose
   .connect(MONGODB_URI, {

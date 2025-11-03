@@ -7,8 +7,16 @@ const authRoutes = require('./routes/auth');
 
 const app = express();
 
+// CORS Configuration
+const corsOptions = {
+  origin: 'http://localhost:8080',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(morgan('dev'));
 
@@ -33,7 +41,7 @@ app.use((err, req, res, next) => {
 
 // Connect to MongoDB and start server
 const PORT = process.env.PORT || 3001;
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://mongo:27017/auth';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/wanderway';
 
 mongoose
     .connect(MONGODB_URI, {

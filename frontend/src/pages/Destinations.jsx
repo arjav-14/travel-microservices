@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Skeleton } from '@/components/ui/skeleton';
 import { MapPin, Star } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+
 import { Input } from '@/components/ui/input';
 
 export default function Destinations() {
@@ -16,12 +17,16 @@ export default function Destinations() {
   useEffect(() => {
     const fetchDestinations = async () => {
       try {
-        const response = await fetch('http://localhost:3005/api/v1/destinations');
-        if (!response.ok) {
-          throw new Error('Failed to fetch destinations');
-        }
-        const data = await response.json();
-        setDestinations(data.data);
+        const token = localStorage.getItem('token');
+        const response = await axios.get("http://localhost:3005/api/v1/destinations", {
+          withCredentials: true,
+          headers: {
+            'Authorization': token ? `Bearer ${token}` : '',
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        });
+        setDestinations(response.data.data);
       } catch (error) {
         console.error('Error fetching destinations:', error);
         toast({

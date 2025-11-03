@@ -19,9 +19,11 @@ export default function MyBookings() {
       // Pass user ID to filter bookings (use _id from MongoDB)
       const userId = user?._id || user?.id;
       console.log('Fetching bookings for user:', userId);
-      const data = await getBookings(userId);
-      console.log('Fetched bookings:', data);
-      setBookings(Array.isArray(data) ? data : []);
+      const response = await getBookings(userId);
+      console.log('Fetched bookings:', response);
+      // Handle both array response and object with data property
+      const bookingsData = Array.isArray(response) ? response : (response.data || []);
+      setBookings(bookingsData);
     } catch (err) {
       console.error('Error in fetchBookings:', err);
       setError('Failed to load bookings. Please try again later.');
